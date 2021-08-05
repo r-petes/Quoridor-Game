@@ -1,29 +1,38 @@
 # Author: Rachel Peterson
-# Date: 8/3/21
-# Description: 
+# Date: 8/5/21
+# Description: A Quoridor game implementation with data members and methods for tracking and validating fence placement
+#     and player movement and determining whether or not a game has been won.
 
-# Don't forget commenting
-# Don't forget docstrings on all functions and classes
-# No one-letter variables
-# NO METHOD HAS MORE THAN 20-25 LINES OF CODE
 
 class QuoridorGame:
-    """ TO DO """
+    """
+    A class that runs a game of Quoridor with data members and methods for tracking and validating fence placement
+    and player movement and determining whether or not a game has been won. Communicates with no other classes
+    to accomplish game simulation.
+    """
 
     def __init__(self):
         """
-        Initialized the board with the fences (four edges) and
-        pawns (P1 and P2) in the correct positions."""
+        Initializes the vertical and horizontal fence positions as well as the player positions
+        and the total number of positions that each player has placed already (initialized to 0).
+        Also initializes the player turn to player 1, as player 1 is to begin the game.
+        """
         # all data members are private
         self._vertical_fence_positions = [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7), (0, 8)]
         self._horizontal_fence_positions = [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0), (7, 0), (8, 0)]
         self._player_1_position = (4, 0)
         self._player_2_position = (4, 8)
-        # need to enforce turns?
+        self._player_1_fences = 0
+        self._player_2_fences = 0
+        self._players_turn = 1
 
     def move_pawn(self, player, player_destination):
-        """ TO DO: Move the pawn."""
-        # takes two params: the player making the move and the coordinates of the destination (tuple)
+        """
+        Takes as parameters the current player's number (integer) making a move and the player's desired destination
+        coordinates (tuple) and checks whether or not this will be a valid pawn move. Returns True and update
+        the pawn's position if the move is determined to be valid, otherwise returns False.
+        """
+        # Set the current_player_position and the opponent_position depending on who is the current player
         if player == 1:
             current_player_position = self._player_1_position
             opponent_position = self._player_2_position
@@ -32,46 +41,81 @@ class QuoridorGame:
             current_player_position = self._player_2_position
             opponent_position = self._player_1_position
 
-        # do the numbers have to be 1 or 2?
-
-        # check if the game has already been won
-        if self.check_if_game_won(self) is False:
+        # Check if the game has already been won
+        if self.is_game_won() is True:
             return False
 
-        # check if the move is forbidden by the rules
-        if self.check_if_forbidden(self, player, player_destination) is False:
+        # Check if it is the current player's turn
+        if self.is_players_turn(player) is False:
             return False
 
-        # if move successful return True
-        if self.check_successful_orthogonal(self, current_player_position, player_destination) is True:
+        # Check if a player is already in that spot
+        if self.is_taken(player, player_destination) is True:
+            return False
+
+        # Check if a player is trying to move out of bounds
+        if self.is_out_of_bounds(player_destination) is False:
+            return False
+
+        # Check if the move is a successful orthogonal move
+        if self.is_valid_orthogonal(current_player_position, player_destination, opponent_position) is True:
+            self.update_coordinates(player, player_destination)
             return True
 
-        if self.check_successful_diagonal(self, current_player_position, opponent_position, player_destination)
+        # Check if the move is a successful diagonal move
+        if self.is_valid_diagonal(current_player_position, opponent_position, player_destination) is True:
+            self.update_coordinates(player, player_destination)
+            return True
+
+        # Switch turn tracker to the next player's turn
+        self.update_turn(player)
 
         return False
 
-    # make sure they haven't already placed a fence/moved a pawn? only one at a time.
-    def check_if_game_won(self):
-        """ If the game has already been won, return False """
+
+    def is_players_turn(self, player):
+        """
+        Takes as a parameter the current player's number and checks if the correct player is taking a turn.
+        Returns True if it is the current player's turn, False otherwise.
+        """
+        pass
+
+    def is_game_won(self):
+        """
+        Takes no parameters and checks both players' positions to see if the game has already been won.
+        Returns True if a player has already won, False otherwise.
+        """
         for number in range(9):
             # if player_1_position = (0,8) - (8,8), player 1 has already won
             if self._player_1_position == (number, 8):
-                return False
+                return True
             # or if player_2_position = (0,0) - (8,0)
             if self._player_2_position == (number, 0):
-                return False
+                return True
+        return False
 
-    def check_if_forbidden(self, player, player_destination):
-        """ If move forbidden by the rule: return False. """
+    def is_taken(self, player, player_destination):
+        """
+        Takes the current player's number and the player destination coordinates as parameters
+        and checks if the player destination is already occupied.
+        Returns True if the player's desired destination is already taken,
+        False otherwise.
+        """
 
-        # if player already in that spot:
         if player == 2:
             if player_destination == self._player_1_position:
-                return False
+                return True
         if player == 1:
             if player_destination == self._player_2_position:
-                return False
+                return True
+        return False
 
+
+    def is_out_of_bounds(self, player_destination):
+        """
+        Takes the player's destination coordinates as a parameter.
+        If the move is out of bounds, return False, but otherwise return True.
+        """
         # if position out of range:
         if player_destination[0] < 0 or player_destination[0] > 8:
             return False
@@ -80,119 +124,209 @@ class QuoridorGame:
 
         return True
 
-    def check_successful_diagonal(self, current_player_position, opponent_position, player_destination):
-        """ Check if diagonal move is successful. """
 
-        # if upward diagonal: if player in front with fence behind them,
-        # if coordinate == current position (x-1,y-1) OR == (x+1, y-1)
-        # if there is another player at (x, y-1)
-        # if there is a fence at (x, y-1)
-        # move is valid, update position and return True
-        # if backward diagonal: if player in front with fence behind them,
-        # if coordinate == current position (x-1,y-1) OR == (x+1, y-1)
-        # if there is another player at (x, y-1)
-        # if there is a fence at (x, y-1)
-        # move is valid, update position and return True
-
-        # if left diagonal: if player in front with fence behind them,
-        # if coordinate == current position (x-1,y-1) OR == (x+1, y-1)
-        # if there is another player at (x, y-1)
-        # if there is a fence at (x, y-1)
-        # move is valid, update position and return True
-
-        # if right diagonal: if player in front with fence behind them,
-        # if coordinate == current position (x-1,y-1) OR == (x+1, y-1)
-        # if there is another player at (x, y-1)
-        # if there is a fence at (x, y-1)
-        # move is valid, update position and return True
-
-
-    def check_successful_orthogonal(self, current_player_position, player_destination):
-        """ Check if orthogonal move is successful. """
+    def is_valid_orthogonal(self, current_player_position, player_destination, opponent_position):
+        """
+        Takes the current player's position and destination coordinates as
+        well as the opponent's current position and checks if they are making an
+        orthogonal movement. Returns True if the orthogonal movement is successful,
+        returns False otherwise.
+        """
 
         # if move is 1 right and not blocked by fence, return true
         if player_destination[0] == current_player_position[0] + 1 and player_destination[1] == current_player_position[1]:
             fence_type = "horizontal"
-            if self.is_fence_blocking(self, player_destination, fence_type) is False:
+            if self.is_fence_blocking(player_destination, fence_type) is False:
                 return True
 
         # if move is 1 left and not blocked by fence, return true
         if player_destination[0] == current_player_position[0] - 1 and player_destination[1] == current_player_position[1]:
             fence_type = "horizontal"
-            if self.is_fence_blocking(self, current_player_position, fence_type) is False:
+            if self.is_fence_blocking(current_player_position, fence_type) is False:
                 return True
 
         # if move is 1 down and not blocked by fence, return true
         if player_destination[0] == current_player_position[0] and player_destination[1] == current_player_position[1] + 1:
             fence_type = "vertical"
-            if self.is_fence_blocking(self, player_destination, fence_type) is False:
+            if self.is_fence_blocking(player_destination, fence_type) is False:
                 return True
 
         # if move is 1 up and not blocked by fence, return true
         if player_destination[0] == current_player_position[0] and player_destination[1] == current_player_position[1] - 1:
             fence_type = "vertical"
-            if self.is_fence_blocking(self, current_player_position, fence_type) is False:
+            if self.is_fence_blocking(current_player_position, fence_type) is False:
                 return True
 
-        # if move is left or up, if no fence at current position return True
-        # if move is down:
-        # if no fence at (x, y+1), return True
-        # if move is right, if no fence at (x+1, y), return True
-        # if not, return True
+        # Check if the move is two spaces because it is skipping another player with no fence blocking the movement
+        if self.is_valid_skip(current_player_position, opponent_position, player_destination) is True:
+            return True
 
+
+    def is_valid_skip(self, current_player_position, opponent_position, player_destination):
+        """
+        Takes the current player's position and destination coordinates as
+        well as the opponent's current position and checks whether the current player is skipping over
+        the opponent piece. Returns True if the skip movement is valid, returns False otherwise.
+        """
         # if player is in front, can jump over (but only if no fence)
         # if move == current position x - or  + 2 or y - or + 2,
         # if there is a player in the space at current +- 1
         # if there is no fence at the space
         # move is valid
+        pass
 
-    def is_space_taken(self, player_destination):
-        """ Checks if the destination space is taken. """
-        # Takes a destination space and checks if another player is already in that space
+    def is_valid_diagonal(self, current_player_position, opponent_position, player_destination):
+        """
+        Takes the current player's position and destination coordinates as
+        well as the opponent's current position and checks for a valid diagonal movement. If the movement
+        is determined to be valid, return True and update the player's position.
+        """
+        pass
+
+            # if upward diagonal: if player in front with fence behind them,
+            # if coordinate == current position (x-1,y-1) OR == (x+1, y-1)
+            # if there is another player at (x, y-1)
+            # if there is a fence at (x, y-1)
+            # move is valid, update position and return True
+            # if backward diagonal: if player in front with fence behind them,
+            # if coordinate == current position (x-1,y-1) OR == (x+1, y-1)
+            # if there is another player at (x, y-1)
+            # if there is a fence at (x, y-1)
+            # move is valid, update position and return True
+
+            # if left diagonal: if player in front with fence behind them,
+            # if coordinate == current position (x-1,y-1) OR == (x+1, y-1)
+            # if there is another player at (x, y-1)
+            # if there is a fence at (x, y-1)
+            # move is valid, update position and return True
+
+            # if right diagonal: if player in front with fence behind them,
+            # if coordinate == current position (x-1,y-1) OR == (x+1, y-1)
+            # if there is another player at (x, y-1)
+            # if there is a fence at (x, y-1)
+            # move is valid, update position and return True
+
 
     def is_fence_blocking(self, fence_coordinates, fence_type):
-        """ Checks if the fence is blocking the movement. """
-        # checks for horizontal moves
+        """
+        Takes as parameters the fence coordinates that would necessitate blocking a predetermined movement
+        as well as the fence type and checks if the fence is blocking a movement. Returns True if the fence is
+        blocking the movement, False otherwise.
+        """
+
+        # Checks for horizontal fence-blocking
         if fence_type == "horizontal":
             if fence_coordinates in self._horizontal_fence_positions:
                 return True
-        # checks for vertical moves
+        # Checks for vertical fence-blocking
         if fence_type == "vertical":
             if fence_coordinates in self._vertical_fence_positions:
                 return True
         return False
 
+    def update_coordinates(self, player, destination_coordinates):
+        """
+        Takes as parameters the player's number whose turn it is and their destination coordinates and
+        updates the player's coordinates to their desired move on a successful turn.
+        """
+        pass
+
 
     def place_fence(self, player, type_of_fence, fence_destination):
-        """ Place a fence. """
-        # params: the player moving the fence, the type of fence (letter) and the fence dest. coords. (tuple)
-        # if game already won, return False
-        # if no fence left return False
-        # if fence out of bounds, return False
-        # if fence already there
-            # if new fence will overlap, return False
-            # if new fence will intersect, return False--- same for one square fence?
-        # if the fence can be placed, return True
-        # if it breaks the fair play rule, return string "breaks the fair play rule"
+        """
+        Takes as parameters the player's number whose turn it is, the type of fence being placed,
+        and the desired fence destination. This method determines whether the fence destination
+        is valid, and returns True and places a fence if so. It returns False otherwise.
+        """
+
+        # Check if the game has already been won
+        if self.is_game_won() is True:
+            return False
+
+        # Checks if the player has fences left to place
+        if self.has_fences_left(player) is False:
+            return False
+
+        # Check if fence placement is out of bounds
+        if self.fence_in_bounds(fence_destination) is False:
+            return False
+
+        # Check if fence is already in that destination
+        if self.fence_already_there(type_of_fence, fence_destination) is True:
+            return False
+
+        # Check if the fence can be placed and update the fence type to include this fence
+        self.add_fence(type_of_fence, fence_destination)
+
+        # Increment # of fences placed by that player TO DO
+
+        # Switch turn tracker to the next player's turn
+        self.update_turn(player)
+
+        return True
+
+
+    def has_fences_left(self, player):
+        """
+        Takes as a parameter the player's number whose turn it is and
+        checks if that player has any fences left to place. Returns
+        False if the player has no fences left, True otherwise.
+        """
+        pass
+
+    def fence_in_bounds(self, fence_destination):
+        """
+        Takes as a parameter the desired destination of the fence and
+        determines if the fence placement is within the board's boundaries
+        (coordinates are between 0 and 8 inclusive). Returns True if the fence is
+        in bounds, False otherwise.
+        """
+        pass
+
+    def fence_already_there(self, type_of_fence, fence_destination):
+        """
+        Takes as parameters the type of fence and the coordinates of its desired destination and
+        checks if a fence is already in that desired destination. Returns True if a fence is
+        already placed in that location, false otherwise.
+        """
+        pass
+
+    def add_fence(self, type_of_fence, fence_destination):
+        """
+        Takes as parameters the type of fence being placed and that fence's destination coordinates
+        and adds the fence to the fence type's list of placed fences.
+        """
+        pass
+
+    def update_turn(self, player):
+        """
+        Takes as a parameter the current player's number and updates the turn tracker
+        to indicate the next player's turn.
+        """
+        if player == 1:
+            self._players_turn = 2
+        if player == 2:
+            self._players_turn = 1
+        return
 
     def is_winner(self, player):
-        """ Returns True if the player has won and false if not. """
-        # Return True if the player won
+        """ Takes as a parameter the number of a player and returns True if the player has won and False if not. """
+
         for number in range(9):
             # if player_1_position = (0,8) - (8,8), player 1 has won
             if player == 1:
                 if self._player_1_position == (number, 8):
                     return True
+
             # or if player_2_position = (0,0) - (8,0)
             if player == 2:
                 if self._player_2_position == (number, 0):
                     return True
+
         return False
 
-    def print_board(self):
-        """ Print the current state of the board."""
 
-
+q = QuoridorGame()
 q.move_pawn(2, (4,7)) #moves the Player2 pawn -- invalid move because only Player1 can start, returns False
 q.move_pawn(1, (4,1)) #moves the Player1 pawn -- valid move, returns True
 q.place_fence(1, 'h',(6,5)) #places Player1's fence -- out of turn move, returns False
