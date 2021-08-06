@@ -1,5 +1,5 @@
 # Author: Rachel Peterson
-# Date: 8/5/21
+# Date: 8/6/21
 # Description: A Quoridor game implementation with data members and methods for tracking and validating fence placement
 #     and player movement and determining whether or not a game has been won.
 
@@ -78,7 +78,9 @@ class QuoridorGame:
         Takes as a parameter the current player's number and checks if the correct player is taking a turn.
         Returns True if it is the current player's turn, False otherwise.
         """
-        pass
+        if player == self._players_turn:
+            return True
+        return False
 
     def is_game_won(self):
         """
@@ -168,12 +170,44 @@ class QuoridorGame:
         well as the opponent's current position and checks whether the current player is skipping over
         the opponent piece. Returns True if the skip movement is valid, returns False otherwise.
         """
+
         # if player is in front, can jump over (but only if no fence)
-        # if move == current position x - or  + 2 or y - or + 2,
-        # if there is a player in the space at current +- 1
-        # if there is no fence at the space
-        # move is valid
-        pass
+        # if move is two to the right:
+        if player_destination[0] == current_player_position[0] + 2 and player_destination[1] == current_player_position[1]:
+            # if there is a player at the space between
+            if opponent_position[0] == current_player_position[0] + 1 and opponent_position[1] == current_player_position[1]:
+                # and no fence there
+                fence_type = "vertical"
+                if self.is_fence_blocking(player_destination, fence_type) is False:
+                    return True
+
+        # if move is two to the left:
+        if player_destination[0] == current_player_position[0] - 2 and player_destination[1] == current_player_position[1]:
+            # if there is a player at the space between
+            if opponent_position[0] == current_player_position[0] - 1 and opponent_position[1] == current_player_position[1]:
+                # and no fence there
+                    fence_type = "vertical"
+                    if self.is_fence_blocking(opponent_position, fence_type) is False:
+                        return True
+
+        # if move is two to the top:
+        if player_destination[0] == current_player_position[0] and player_destination[1] == current_player_position[1] - 2:
+            # if there is a player at the space between
+            if opponent_position[0] == current_player_position[0] and opponent_position[1] == current_player_position[1] -1:
+                fence_type = "horizontal"
+                # and no fence there
+                if self.is_fence_blocking(opponent_position, fence_type) is False:
+                    return True
+
+        # if move is two down:
+        if player_destination[0] == current_player_position[0] and player_destination[1] == current_player_position[1] + 2:
+            # if there is a player at the space between
+            if opponent_position[0] == current_player_position[0] and opponent_position[1] == current_player_position[1] + 1:
+                # and no fence there
+                fence_type = "horizontal"
+                if self.is_fence_blocking(player_destination, fence_type) is False:
+                    return True
+
 
     def is_valid_diagonal(self, current_player_position, opponent_position, player_destination):
         """
@@ -229,7 +263,12 @@ class QuoridorGame:
         Takes as parameters the player's number whose turn it is and their destination coordinates and
         updates the player's coordinates to their desired move on a successful turn.
         """
-        pass
+        if player == 1:
+            self._player_1_position = destination_coordinates
+            return
+        elif player == 2:
+            self._player_2_position = destination_coordinates
+            return
 
 
     def place_fence(self, player, type_of_fence, fence_destination):
@@ -258,7 +297,11 @@ class QuoridorGame:
         # Check if the fence can be placed and update the fence type to include this fence
         self.add_fence(type_of_fence, fence_destination)
 
-        # Increment # of fences placed by that player TO DO
+        # Increment # of fences placed by that player
+        if player == 1:
+            self._player_1_fences += 1
+        elif player == 2:
+            self._player_2_fences += 1
 
         # Switch turn tracker to the next player's turn
         self.update_turn(player)
@@ -272,7 +315,13 @@ class QuoridorGame:
         checks if that player has any fences left to place. Returns
         False if the player has no fences left, True otherwise.
         """
-        pass
+        if player == 1:
+            if self._player_1_fences == 10:
+                return False
+        elif player == 2:
+            if self._player_2_fences == 10:
+                return False
+        return True
 
     def fence_in_bounds(self, fence_destination):
         """
@@ -281,7 +330,14 @@ class QuoridorGame:
         (coordinates are between 0 and 8 inclusive). Returns True if the fence is
         in bounds, False otherwise.
         """
-        pass
+        # if position out of range:
+        if fence_destination[0] < 0 or fence_destination[0] > 8:
+            return False
+        if fence_destination[1] < 0 or fence_destination[1] > 8:
+            return False
+
+        return True
+
 
     def fence_already_there(self, type_of_fence, fence_destination):
         """
@@ -289,14 +345,24 @@ class QuoridorGame:
         checks if a fence is already in that desired destination. Returns True if a fence is
         already placed in that location, false otherwise.
         """
-        pass
+        if type_of_fence == "h":
+            if fence_destination in self._horizontal_fence_positions:
+                return True
+        if type_of_fence =="v":
+            if fence_destination in self._vertical_fence_positions:
+                return True
+        return False
 
     def add_fence(self, type_of_fence, fence_destination):
         """
         Takes as parameters the type of fence being placed and that fence's destination coordinates
         and adds the fence to the fence type's list of placed fences.
         """
-        pass
+        if type_of_fence == "h":
+            self._horizontal_fence_positions.append(fence_destination)
+        if type_of_fence == "v":
+            self._vertical_fence_positions.append(fence_destination)
+        return
 
     def update_turn(self, player):
         """
