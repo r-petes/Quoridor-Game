@@ -60,15 +60,16 @@ class QuoridorGame:
         # Check if the move is a successful orthogonal move
         if self.is_valid_orthogonal(current_player_position, player_destination, opponent_position) is True:
             self.update_coordinates(player, player_destination)
+            # Switch turn tracker to the next player's turn
+            self.update_turn(player)
             return True
 
         # Check if the move is a successful diagonal move
         if self.is_valid_diagonal(current_player_position, opponent_position, player_destination) is True:
             self.update_coordinates(player, player_destination)
+            # Switch turn tracker to the next player's turn
+            self.update_turn(player)
             return True
-
-        # Switch turn tracker to the next player's turn
-        self.update_turn(player)
 
         return False
 
@@ -171,29 +172,10 @@ class QuoridorGame:
         the opponent piece. Returns True if the skip movement is valid, returns False otherwise.
         """
 
-        # if player is in front, can jump over (but only if no fence)
-        # if move is two to the right:
-        if player_destination[0] == current_player_position[0] + 2 and player_destination[1] == current_player_position[1]:
-            # if there is a player at the space between
-            if opponent_position[0] == current_player_position[0] + 1 and opponent_position[1] == current_player_position[1]:
-                # and no fence there
-                fence_type = "vertical"
-                if self.is_fence_blocking(player_destination, fence_type) is False:
-                    return True
-
-        # if move is two to the left:
-        if player_destination[0] == current_player_position[0] - 2 and player_destination[1] == current_player_position[1]:
-            # if there is a player at the space between
-            if opponent_position[0] == current_player_position[0] - 1 and opponent_position[1] == current_player_position[1]:
-                # and no fence there
-                    fence_type = "vertical"
-                    if self.is_fence_blocking(opponent_position, fence_type) is False:
-                        return True
-
-        # if move is two to the top:
+        # if move is two up:
         if player_destination[0] == current_player_position[0] and player_destination[1] == current_player_position[1] - 2:
             # if there is a player at the space between
-            if opponent_position[0] == current_player_position[0] and opponent_position[1] == current_player_position[1] -1:
+            if opponent_position[0] == current_player_position[0] and opponent_position[1] == current_player_position[1] - 1:
                 fence_type = "horizontal"
                 # and no fence there
                 if self.is_fence_blocking(opponent_position, fence_type) is False:
@@ -215,30 +197,30 @@ class QuoridorGame:
         well as the opponent's current position and checks for a valid diagonal movement. If the movement
         is determined to be valid, return True and update the player's position.
         """
-        pass
 
-            # if upward diagonal: if player in front with fence behind them,
-            # if coordinate == current position (x-1,y-1) OR == (x+1, y-1)
+        # if upward left diagonal: if player in front with fence behind them,
+        if player_destination[0] == current_player_position[0] + 1 and player_destination[1] == current_player_position[1] - 1 or player_destination[0] == current_player_position[0] - 1 and player_destination[1] == current_player_position[1] - 1:
             # if there is another player at (x, y-1)
-            # if there is a fence at (x, y-1)
-            # move is valid, update position and return True
-            # if backward diagonal: if player in front with fence behind them,
-            # if coordinate == current position (x-1,y-1) OR == (x+1, y-1)
-            # if there is another player at (x, y-1)
-            # if there is a fence at (x, y-1)
-            # move is valid, update position and return True
+            if opponent_position[0] == current_player_position[0] and opponent_position[1] == current_player_position[1] - 1:
+                # check if there is a fence at (x, y-1)
+                fence_type = "horizontal"
+                if self.is_fence_blocking(opponent_position, fence_type) is True:
+                    return True
 
-            # if left diagonal: if player in front with fence behind them,
-            # if coordinate == current position (x-1,y-1) OR == (x+1, y-1)
-            # if there is another player at (x, y-1)
-            # if there is a fence at (x, y-1)
-            # move is valid, update position and return True
 
-            # if right diagonal: if player in front with fence behind them,
-            # if coordinate == current position (x-1,y-1) OR == (x+1, y-1)
-            # if there is another player at (x, y-1)
-            # if there is a fence at (x, y-1)
-            # move is valid, update position and return True
+
+
+            # if backward diagonal:
+            if player_destination[0] == current_player_position[0] + 1 and player_destination[1] == current_player_position[1] + 1 or player_destination[0] == current_player_position[0] - 1 and player_destination[1] == current_player_position[1] + 1:
+                # if there is another player at (x, y+1)
+                if opponent_position[0] == current_player_position[0] and opponent_position[1] == current_player_position[1] + 1:
+                    # if there is a fence at (x, y+1)
+                    fence_type = "horizontal"
+                    fence_location = (current_player_position[0], current_player_position[1] + 2)
+                    if self.is_fence_blocking(fence_location, fence_type) is True:
+                        return True
+
+            return False
 
 
     def is_fence_blocking(self, fence_coordinates, fence_type):
@@ -280,6 +262,10 @@ class QuoridorGame:
 
         # Check if the game has already been won
         if self.is_game_won() is True:
+            return False
+
+        # Check if it is the current player's turn
+        if self.is_players_turn(player) is False:
             return False
 
         # Checks if the player has fences left to place
@@ -348,7 +334,7 @@ class QuoridorGame:
         if type_of_fence == "h":
             if fence_destination in self._horizontal_fence_positions:
                 return True
-        if type_of_fence =="v":
+        if type_of_fence == "v":
             if fence_destination in self._vertical_fence_positions:
                 return True
         return False
@@ -392,12 +378,4 @@ class QuoridorGame:
         return False
 
 
-q = QuoridorGame()
-q.move_pawn(2, (4,7)) #moves the Player2 pawn -- invalid move because only Player1 can start, returns False
-q.move_pawn(1, (4,1)) #moves the Player1 pawn -- valid move, returns True
-q.place_fence(1, 'h',(6,5)) #places Player1's fence -- out of turn move, returns False
-q.move_pawn(2, (4,7)) #moves the Player2 pawn -- valid move, returns True
-q.place_fence(1, 'h',(6,5)) #places Player1's fence -- returns True
-q.place_fence(2, 'v',(3,3)) #places Player2's fence -- returns True
-q.is_winner(1) #returns False because Player 1 has not won
-q.is_winner(2) #returns False because Player 2 has not won
+
