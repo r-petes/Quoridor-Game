@@ -45,19 +45,19 @@ class QuoridorGame:
 
         # Check if the game has already been won
         if self.is_game_won() is True:
-            return False
+            return "Game has already been won."
 
         # Check if it is the current player's turn
         if self.is_players_turn(player) is False:
-            return False
+            return "It is not your turn!"
 
         # Check if a player is already in that spot
         if self.is_taken(player, player_destination) is True:
-            return False
+            return "That spot is already taken!"
 
         # Check if a player is trying to move out of bounds
         if self.is_out_of_bounds(player_destination) is False:
-            return False
+            return "That movement is out of bounds!"
 
         # Check if the move is a successful orthogonal move
         if self.is_valid_orthogonal(current_player_position, player_destination, opponent_position) is True:
@@ -73,7 +73,7 @@ class QuoridorGame:
             self.update_turn(player)
             return True
 
-        return False
+        return "Not a valid move!"
 
     def is_players_turn(self, player):
         """
@@ -258,23 +258,23 @@ class QuoridorGame:
 
         # Check if the game has already been won
         if self.is_game_won() is True:
-            return False
+            return "Game has already been won!"
 
         # Check if it is the current player's turn
         if self.is_players_turn(player) is False:
-            return False
+            return "It is not your turn!"
 
         # Checks if the player has fences left to place
         if self.has_fences_left(player) is False:
-            return False
+            return "You have no fences left to place!"
 
         # Check if fence placement is out of bounds
         if self.fence_in_bounds(fence_destination) is False:
-            return False
+            return "That fence placement is out of bounds!"
 
         # Check if fence is already in that destination
         if self.fence_already_there(type_of_fence, fence_destination) is True:
-            return False
+            return "There is already a fence in that location!"
 
         # Check if the fence can be placed and update the fence type to include this fence
         self.add_fence(type_of_fence, fence_destination)
@@ -368,11 +368,11 @@ class QuoridorGame:
             # if player_1_position = (0,8) - (8,8), player 1 has won
             if player == 1:
                 if self._player_1_position == (number, 8):
-                    return True
+                    return "Player 1 has won!"
 
             # or if player_2_position = (0,0) - (8,0)
             if player == 2:
                 if self._player_2_position == (number, 0):
-                    return True
+                    return "Player 2 has won!"
 
-        return False
+        return "No winner yet!"
