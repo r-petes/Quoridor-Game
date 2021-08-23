@@ -1,7 +1,3 @@
-# Author: Rachel Peterson
-# Date: 8/10/21
-# Description: A Quoridor game implementation with data members and methods for tracking and validating fence placement
-#     and player movement and determining whether or not a game has been won.
 
 
 class QuoridorGame:
